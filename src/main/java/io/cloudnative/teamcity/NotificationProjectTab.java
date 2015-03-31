@@ -1,6 +1,7 @@
 package io.cloudnative.teamcity;
 
-
+import static io.cloudnative.teamcity.NotificationConstants.*;
+import com.google.common.collect.ImmutableMap;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.users.SUser;
@@ -9,6 +10,8 @@ import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.project.ProjectTab;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import lombok.val;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,13 +22,18 @@ import java.util.Map;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class NotificationProjectTab extends ProjectTab {
 
-  PluginDescriptor pluginDescriptor;
+  PluginDescriptor     pluginDescriptor;
+  NotificationSettings settings;
+
+  private static final Logger LOG = Logger.getLogger(NotificationProjectTab.class);
 
   public NotificationProjectTab(@NotNull PagePlaces pagePlaces,
                                 @NotNull ProjectManager projectManager,
-                                @NotNull PluginDescriptor pluginDescriptor) {
-    super("notification", "Notification", pagePlaces, projectManager);
+                                @NotNull PluginDescriptor pluginDescriptor,
+                                @NotNull NotificationSettings settings) {
+    super(PLUGIN_NAME, PLUGIN_TITLE, pagePlaces, projectManager);
     this.pluginDescriptor = pluginDescriptor;
+    this.settings         = settings;
   }
 
 
@@ -34,20 +42,17 @@ public class NotificationProjectTab extends ProjectTab {
                             @NotNull  HttpServletRequest request,
                             @NotNull  SProject project,
                             @Nullable SUser user){
-    model.put("projectId", project.getExternalId());
-    model.put("url",       "aaa");
+    val projectId = project.getExternalId();
+    model.putAll(ImmutableMap.of("projectId", projectId,
+                                 "url",       settings.getUrl(projectId),
+                                 "action",    PLUGIN_NAME + "/" + CONTROLLER_PATH));
+    LOG.info("Project tab model: " + model);
   }
 
 
   @NotNull
   @Override
   public String getIncludeUrl() {
-    return resourcePath("projectTab.jsp");
-  }
-
-
-  @NotNull
-  private String resourcePath(String relativePath){
-    return pluginDescriptor.getPluginResourcesPath(relativePath);
+    return pluginDescriptor.getPluginResourcesPath("projectTab.jsp");
   }
 }

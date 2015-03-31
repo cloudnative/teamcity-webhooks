@@ -2,6 +2,9 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 
 <beans default-autowire="constructor">
+  <bean id="NotificationSettings"
+        class="io.cloudnative.teamcity.NotificationSettings"/>
+
   <bean id="NotificationProjectTab"
         class="io.cloudnative.teamcity.NotificationProjectTab"/>
 
