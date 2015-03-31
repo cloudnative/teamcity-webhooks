@@ -7,6 +7,8 @@ import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.web.openapi.PagePlaces;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.project.ProjectTab;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class NotificationProjectTab extends ProjectTab {
 
   PluginDescriptor pluginDescriptor;
@@ -31,7 +34,8 @@ public class NotificationProjectTab extends ProjectTab {
                             @NotNull  HttpServletRequest request,
                             @NotNull  SProject project,
                             @Nullable SUser user){
-    model.put("projectName", project.getName());
+    model.put("projectId", project.getExternalId());
+    model.put("url",       "aaa");
   }
 
 
