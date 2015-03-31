@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
-@ExtensionMethod({LombokExtensions.class})
+@ExtensionMethod(LombokExtensions.class)
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class NotificationController extends BaseController {
