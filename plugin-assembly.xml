@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<assembly>
+  <id>plugin-assembly</id>
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <formats>
+    <format>zip</format>
+  </formats>
+  <files>
+    <file>
+      <source>target/teamcity-plugin.xml</source>
+      <outputDirectory>/</outputDirectory>
+    </file>
+  </files>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>server</outputDirectory>
+      <unpack>false</unpack>
+      <includes>
+        <include>*</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+</assembly>
