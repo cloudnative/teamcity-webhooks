@@ -37,7 +37,7 @@ public class NotificationProjectTab extends ProjectTab {
 
   @NotNull
   @Override
- 	public String getIncludeUrl() {
+  public String getIncludeUrl() {
     return resourcePath("projectTab.jsp");
   }
 
