@@ -4,7 +4,7 @@
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.cloudnative.teamcity</groupId>
-  <artifactId>notification</artifactId>
+  <artifactId>webhooks</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
   <properties>
@@ -68,7 +68,7 @@
               <goal>single</goal>
             </goals>
             <configuration>
-              <finalName>notification</finalName>
+              <finalName>webhooks</finalName>
               <outputDirectory>${project.build.directory}</outputDirectory>
               <appendAssemblyId>false</appendAssemblyId>
               <descriptors>

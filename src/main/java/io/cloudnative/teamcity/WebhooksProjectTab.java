@@ -1,6 +1,6 @@
 package io.cloudnative.teamcity;
 
-import static io.cloudnative.teamcity.NotificationConstants.*;
+import static io.cloudnative.teamcity.WebhooksConstants.*;
 import com.google.common.collect.ImmutableMap;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SProject;
@@ -20,17 +20,17 @@ import java.util.Map;
 
 
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class NotificationProjectTab extends ProjectTab {
+public class WebhooksProjectTab extends ProjectTab {
 
   PluginDescriptor     pluginDescriptor;
-  NotificationSettings settings;
+  WebhooksSettings settings;
 
-  private static final Logger LOG = Logger.getLogger(NotificationProjectTab.class);
+  private static final Logger LOG = Logger.getLogger(WebhooksProjectTab.class);
 
-  public NotificationProjectTab(@NotNull PagePlaces pagePlaces,
-                                @NotNull ProjectManager projectManager,
-                                @NotNull PluginDescriptor pluginDescriptor,
-                                @NotNull NotificationSettings settings) {
+  public WebhooksProjectTab(@NotNull PagePlaces pagePlaces,
+                            @NotNull ProjectManager projectManager,
+                            @NotNull PluginDescriptor pluginDescriptor,
+                            @NotNull WebhooksSettings settings) {
     super(PLUGIN_NAME, PLUGIN_TITLE, pagePlaces, projectManager);
     this.pluginDescriptor = pluginDescriptor;
     this.settings         = settings;

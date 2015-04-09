@@ -18,13 +18,13 @@ import java.util.Map;
 
 @ExtensionMethod(LombokExtensions.class)
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class NotificationSettings {
+public class WebhooksSettings {
 
   private final File settingsFile;
   private final Map<String,String> urls;
 
-  public NotificationSettings(ServerPaths serverPaths) {
-    settingsFile = new File(serverPaths.getConfigDir(), "notification-settings.json");
+  public WebhooksSettings(ServerPaths serverPaths) {
+    settingsFile = new File(serverPaths.getConfigDir(), "webhooks-settings.json");
     urls         = restoreSettings();
   }
 

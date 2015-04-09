@@ -1,8 +1,8 @@
 package io.cloudnative.teamcity;
 
 @SuppressWarnings("ConstantDeclaredInInterface")
-interface NotificationConstants {
-  String PLUGIN_TITLE    = "Notification";
-  String PLUGIN_NAME     = "notification";
+interface WebhooksConstants {
+  String PLUGIN_TITLE    = "WebHooks";
+  String PLUGIN_NAME     = PLUGIN_TITLE.toLowerCase();
   String CONTROLLER_PATH = "index.html";
 }

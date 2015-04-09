@@ -1,7 +1,7 @@
 package io.cloudnative.teamcity;
 
 
-import static io.cloudnative.teamcity.NotificationConstants.*;
+import static io.cloudnative.teamcity.WebhooksConstants.*;
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import lombok.AccessLevel;
@@ -20,10 +20,11 @@ import javax.servlet.http.HttpServletResponse;
 @ExtensionMethod(LombokExtensions.class)
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class NotificationController extends BaseController {
+public class WebhooksController extends BaseController {
 
   @NonNull WebControllerManager webManager;
-  @NonNull NotificationSettings settings;
+  @NonNull
+  WebhooksSettings settings;
 
   public void register(){
     webManager.registerController("/%s/%s".f(PLUGIN_NAME, CONTROLLER_PATH), this);

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans default-autowire="constructor">
+  <bean id="WebhooksSettings"
+        singleton="true"
+        class="io.cloudnative.teamcity.WebhooksSettings"/>
+
+  <bean id="WebhooksProjectTab"
+        class="io.cloudnative.teamcity.WebhooksProjectTab"/>
+
+  <bean id="WebhooksController"
+        class="io.cloudnative.teamcity.WebhooksController"
+        init-method="register"/>
+</beans>
