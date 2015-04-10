@@ -9,23 +9,21 @@ import jetbrains.buildServer.web.openapi.PagePlaces;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.project.ProjectTab;
 import lombok.AccessLevel;
+import lombok.experimental.ExtensionMethod;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 
+@ExtensionMethod(LombokExtensions.class)
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class WebhooksProjectTab extends ProjectTab {
 
-  PluginDescriptor     pluginDescriptor;
+  PluginDescriptor pluginDescriptor;
   WebhooksSettings settings;
-
-  private static final Logger LOG = Logger.getLogger(WebhooksProjectTab.class);
 
   public WebhooksProjectTab(@NotNull PagePlaces pagePlaces,
                             @NotNull ProjectManager projectManager,
@@ -44,9 +42,8 @@ public class WebhooksProjectTab extends ProjectTab {
                             @Nullable SUser user){
     val projectId = project.getExternalId();
     model.putAll(ImmutableMap.of("projectId", projectId,
-                                 "url",       settings.getUrl(projectId),
-                                 "action",    PLUGIN_NAME + "/" + CONTROLLER_PATH));
-    LOG.info("Project tab model: " + model);
+                                 "url", settings.getUrl(projectId),
+                                 "action", PLUGIN_NAME + "/" + CONTROLLER_PATH));
   }
 
 

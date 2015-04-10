@@ -17,14 +17,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
+/**
+ * Called when project's webhooks are updated.
+ */
 @ExtensionMethod(LombokExtensions.class)
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class WebhooksController extends BaseController {
 
   @NonNull WebControllerManager webManager;
-  @NonNull
-  WebhooksSettings settings;
+  @NonNull WebhooksSettings     settings;
 
   public void register(){
     webManager.registerController("/%s/%s".f(PLUGIN_NAME, CONTROLLER_PATH), this);
@@ -39,7 +41,6 @@ public class WebhooksController extends BaseController {
     @NonNull val url       = request.getParameter("url");
 
     settings.setUrl(projectId, url);
-
     return new ModelAndView("redirect:/project.html?projectId=%s&tab=%s".f(projectId, PLUGIN_NAME));
   }
 }

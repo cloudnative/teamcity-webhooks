@@ -1,6 +1,6 @@
 package io.cloudnative.teamcity;
 
-
+import static io.cloudnative.teamcity.WebhooksConstants.*;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import jetbrains.buildServer.serverSide.ServerPaths;
@@ -9,7 +9,6 @@ import jodd.json.JsonSerializer;
 import lombok.*;
 import lombok.experimental.ExtensionMethod;
 import lombok.experimental.FieldDefaults;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -20,8 +19,8 @@ import java.util.Map;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class WebhooksSettings {
 
-  private final File settingsFile;
-  private final Map<String,String> urls;
+  File               settingsFile;
+  Map<String,String> urls;
 
   public WebhooksSettings(ServerPaths serverPaths) {
     settingsFile = new File(serverPaths.getConfigDir(), "webhooks-settings.json");
@@ -37,27 +36,32 @@ public class WebhooksSettings {
 
   void setUrl(@NonNull String projectId, @NonNull String url){
     urls.put(projectId, url);
-    saveSettings(urls);
+    saveSettings();
   }
 
 
-  @SuppressWarnings("unchecked")
   @SneakyThrows(IOException.class)
   private Map<String,String> restoreSettings(){
+
     if (settingsFile.isFile()) {
-      val content  = Files.toString(settingsFile, Charset.forName("UTF-8"));
-      val settings = new JsonParser().parse(content, Map.class);
-      return (Map<String,String>) settings;
+      try {
+        val content  = Files.toString(settingsFile, Charset.forName("UTF-8"));
+        val settings = new JsonParser().parse(content, Map.class);
+        // noinspection unchecked
+        return (Map<String,String>) settings;
+      }
+      catch (Exception e) {
+        LOG.error("Failed to restore settings from '%s'".f(settingsFile.getCanonicalPath()), e);
+      }
     }
-    else {
-      return Maps.newHashMap();
-    }
+
+    return Maps.newHashMap();
   }
 
 
   @SneakyThrows(IOException.class)
-  private void saveSettings(Map<String,String> settings){
-    val content = new JsonSerializer().serialize(settings);
+  private void saveSettings(){
+    val content = new JsonSerializer().serialize(urls);
     Files.write(content, settingsFile, Charset.forName("UTF-8"));
   }
 }

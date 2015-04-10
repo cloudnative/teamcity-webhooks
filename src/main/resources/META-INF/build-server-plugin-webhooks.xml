@@ -9,6 +9,10 @@
   <bean id="WebhooksProjectTab"
         class="io.cloudnative.teamcity.WebhooksProjectTab"/>
 
+  <bean id="WebhooksListener"
+        class="io.cloudnative.teamcity.WebhooksListener"
+        init-method="register"/>
+
   <bean id="WebhooksController"
         class="io.cloudnative.teamcity.WebhooksController"
         init-method="register"/>
