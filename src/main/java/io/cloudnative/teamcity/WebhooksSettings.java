@@ -1,12 +1,13 @@
 package io.cloudnative.teamcity;
 
-import static io.cloudnative.teamcity.WebhooksConstants.*;
+import static io.cloudnative.teamcity.WebhooksConstants.LOG;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
+import com.google.gson.Gson;
 import jetbrains.buildServer.serverSide.ServerPaths;
-import jodd.json.JsonParser;
-import jodd.json.JsonSerializer;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.NonNull;
+import lombok.SneakyThrows;
 import lombok.experimental.ExtensionMethod;
 import lombok.experimental.FieldDefaults;
 import java.io.File;
@@ -45,10 +46,9 @@ public class WebhooksSettings {
 
     if (settingsFile.isFile()) {
       try {
-        val content  = Files.toString(settingsFile, Charset.forName("UTF-8"));
-        val settings = new JsonParser().parse(content, Map.class);
+        String content = Files.toString(settingsFile, Charset.forName("UTF-8"));
         // noinspection unchecked
-        return (Map<String,String>) settings;
+        return (Map<String,String>) new Gson().fromJson(content, Map.class);
       }
       catch (Exception e) {
         LOG.error("Failed to restore settings from '%s'".f(settingsFile.getCanonicalPath()), e);
@@ -61,7 +61,7 @@ public class WebhooksSettings {
 
   @SneakyThrows(IOException.class)
   private void saveSettings(){
-    val content = new JsonSerializer().serialize(urls);
+    String content = new Gson().toJson(urls);
     Files.write(content, settingsFile, Charset.forName("UTF-8"));
   }
 }
