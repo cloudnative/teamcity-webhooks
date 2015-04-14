@@ -1,6 +1,7 @@
 package io.cloudnative.teamcity;
 
-import static io.cloudnative.teamcity.WebhooksConstants.LOG;
+import static io.cloudnative.teamcity.WebhooksConstants.*;
+import static io.cloudnative.teamcity.WebhooksUtils.*;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
@@ -24,7 +25,7 @@ public class WebhooksSettings {
   Map<String,String> urls;
 
   public WebhooksSettings(ServerPaths serverPaths) {
-    settingsFile = new File(serverPaths.getConfigDir(), "webhooks-settings.json");
+    settingsFile = new File(serverPaths.getConfigDir(), SETTINGS_FILE);
     urls         = restoreSettings();
   }
 
@@ -46,9 +47,8 @@ public class WebhooksSettings {
 
     if (settingsFile.isFile()) {
       try {
-        String content = Files.toString(settingsFile, Charset.forName("UTF-8"));
         // noinspection unchecked
-        return (Map<String,String>) new Gson().fromJson(content, Map.class);
+        return (Map<String,String>) readJsonFile(settingsFile);
       }
       catch (Exception e) {
         LOG.error("Failed to restore settings from '%s'".f(settingsFile.getCanonicalPath()), e);
