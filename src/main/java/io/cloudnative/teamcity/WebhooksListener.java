@@ -71,7 +71,7 @@ public class WebhooksListener extends BuildServerAdapter {
 
   /**
    * Retrieves map of build's S3 artifacts:
-   * {'artifact.jar' => {'s3' => 'https://artifact/url'}}
+   * {'artifact.jar' => {'s3' => 'https://s3-artifact/url'}}
    */
   private Map<String,Map<String, String>> s3Artifacts(jetbrains.buildServer.Build finishedBuild){
 
@@ -100,7 +100,8 @@ public class WebhooksListener extends BuildServerAdapter {
                                     finishedBuild.getBuildNumber());
       List<S3ObjectSummary> objects = s3Client.listObjects(bucketName, prefix).getObjectSummaries();
 
-      if (objects.size() < 1) {
+      if (objects.size() < 2) {
+        // One object is always a JSON summary file
         return Collections.emptyMap();
       }
 
@@ -110,15 +111,16 @@ public class WebhooksListener extends BuildServerAdapter {
         String key = summary.getKey();
         if (key.contains("/artifacts/")) {
           final String artifact = key.split("/").last();
-          final String url      = "https://s3-%s.amazonaws.com/%s/%s".f(s3Client.getBucketLocation(bucketName), bucketName, key);
+          final String region   = s3Client.getBucketLocation(bucketName);
+          final String url      = "https://s3-%s.amazonaws.com/%s/%s".f(region, bucketName, key);
           artifacts.put(artifact, ImmutableMap.of("s3", url));
         }
       }
 
-      return artifacts;
+      return Collections.unmodifiableMap(artifacts);
     }
     catch (AmazonClientException e) {
-      LOG.error("Failed to list objects of S3 bucket '%s'".f(bucketName), e);
+      LOG.error("Failed to list objects in S3 bucket '%s'".f(bucketName), e);
       return Collections.emptyMap();
     }
   }
