@@ -82,34 +82,36 @@ public class WebhooksListener extends BuildServerAdapter {
     }
 
     val s3Settings            = readJsonFile(s3SettingsFile);
-    final String bucketName   = ((String) s3Settings.get("bucketName")).or("");
+    final String bucketName   = ((String) s3Settings.get("artifactBucket")).or("");
     final String awsAccessKey = ((String) s3Settings.get("awsAccessKey")).or("");
     final String awsSecretKey = ((String) s3Settings.get("awsSecretKey")).or("");
 
-    if (isEmpty(bucketName, awsAccessKey, awsSecretKey)) {
+    if (isEmpty(bucketName)) {
       return Collections.emptyMap();
     }
 
     try {
-      AmazonS3 s3Client = new AmazonS3Client(new BasicAWSCredentials(awsAccessKey, awsSecretKey));
+      AmazonS3 s3Client = isEmpty(awsAccessKey, awsSecretKey) ?
+        new AmazonS3Client() :
+        new AmazonS3Client(new BasicAWSCredentials(awsAccessKey, awsSecretKey));
+
       if (! s3Client.doesBucketExist(bucketName)) {
         return Collections.emptyMap();
       }
 
-      String   prefix   = "%s/%s".f(finishedBuild.getFullName().replace( " :: ", "::" ),
-                                    finishedBuild.getBuildNumber());
-      List<S3ObjectSummary> objects = s3Client.listObjects(bucketName, prefix).getObjectSummaries();
+      final String prefix = "%s/%s".f(finishedBuild.getFullName().replace( " :: ", "::" ),
+                                      finishedBuild.getBuildNumber());
+      val objects = s3Client.listObjects(bucketName, prefix).getObjectSummaries();
 
-      if (objects.size() < 2) {
-        // One object is always a JSON summary file
+      if (objects.isEmpty()) {
         return Collections.emptyMap();
       }
 
       final Map<String, Map<String, String>> artifacts = new HashMap<String, Map<String, String>>();
 
-      for (S3ObjectSummary summary : objects){
-        String key = summary.getKey();
-        if (key.contains("/artifacts/")) {
+      for (val summary : objects){
+        val key = summary.getKey();
+        if (! key.endsWith("build.json")) {
           final String artifact = key.split("/").last();
           final String region   = s3Client.getBucketLocation(bucketName);
           final String url      = "https://s3-%s.amazonaws.com/%s/%s".f(region, bucketName, key);
