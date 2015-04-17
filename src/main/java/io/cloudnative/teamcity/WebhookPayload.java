@@ -8,11 +8,11 @@ import java.util.Map;
 @AllArgsConstructor(staticName = "of")
 public class WebhookPayload {
 
-  String name;
-  Build  build;
+  String       name;
+  PayloadBuild build;
 
   @Builder
-  static class Build {
+  static class PayloadBuild {
     String status;
     Scm    scm;
     Map<String,Map<String, String>> artifacts;

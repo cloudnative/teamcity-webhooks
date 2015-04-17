@@ -3,25 +3,18 @@ package io.cloudnative.teamcity;
 import static io.cloudnative.teamcity.WebhookPayload.*;
 import static io.cloudnative.teamcity.WebhooksConstants.*;
 import static io.cloudnative.teamcity.WebhooksUtils.*;
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.artifacts.ArtifactsGuard;
 import jetbrains.buildServer.vcs.VcsException;
-import jetbrains.buildServer.vcs.VcsRootInstanceEntry;
 import lombok.*;
 import lombok.experimental.ExtensionMethod;
 import lombok.experimental.FieldDefaults;
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @ExtensionMethod(LombokExtensions.class)
@@ -42,30 +35,32 @@ public class WebhooksListener extends BuildServerAdapter {
 
   @Override
   public void buildFinished(SRunningBuild build) {
-    String payload = new Gson().toJson(buildPayload(build));
-    LOG.info("Project '%s' finished, payload is '%s'".f(build.getBuildTypeExternalId(), payload));
+    try {
+      String payload = new Gson().toJson(buildPayload(build));
+      LOG.info("Project '%s' finished, payload is '%s'".f(build.getBuildTypeExternalId(), payload));
+    }
+    catch (Throwable t) {
+      LOG.error("Failed to listen on buildFinished() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
+    }
   }
 
 
-  @SuppressWarnings("FeatureEnvy")
+  @SuppressWarnings({"FeatureEnvy" , "ConstantConditions"})
   @SneakyThrows(VcsException.class)
   private WebhookPayload buildPayload(SRunningBuild build){
-    @NonNull SBuildType buildType =
-      buildServer.getProjectManager().findBuildTypeByExternalId(build.getBuildTypeExternalId());
-    @SuppressWarnings("ConstantConditions")
-    val status = buildType.getStatusDescriptor().getStatusDescriptor().getText();
-    List<VcsRootInstanceEntry> vcsRoots = buildType.getVcsRootInstanceEntries();
-    Map<String,Map<String, String>> artifacts = artifacts(build);
+    val buildType = build.getBuildType();
+    val status    = buildType.getStatusDescriptor().getStatusDescriptor().getText();
+    val vcsRoots  = buildType.getVcsRootInstanceEntries();
     Scm scm = null;
 
     if (! vcsRoots.isEmpty()) {
-      @NonNull val vcsRoot = vcsRoots.get(0).getVcsRoot();
+      val vcsRoot = vcsRoots.get(0).getVcsRoot();
       scm = Scm.builder().url(vcsRoot.getProperty("url")).
                           branch(vcsRoot.getProperty("branch")).
                           commit(vcsRoot.getCurrentRevision().getVersion()).build();
     }
 
-    val buildPayload = Build.builder().status(status).scm(scm).artifacts(artifacts).build();
+    val buildPayload = PayloadBuild.builder().status(status).scm(scm).artifacts(artifacts(build)).build();
     return WebhookPayload.of(build.getFullName(), buildPayload);
   }
 
@@ -77,49 +72,74 @@ public class WebhooksListener extends BuildServerAdapter {
    * https://devnet.jetbrains.com/message/5257486
    * https://confluence.jetbrains.com/display/TCD8/Patterns+For+Accessing+Build+Artifacts
    */
-  private Map<String,Map<String, String>> artifacts(@SuppressWarnings("TypeMayBeWeakened") SRunningBuild build){
-    val artifactsDirectory = build.getArtifactsDirectory();
-    if ((artifactsDirectory == null) || (! artifactsDirectory.isDirectory())) {
+  @SuppressWarnings({"ConstantConditions" , "TypeMayBeWeakened" , "CollectionDeclaredAsConcreteClass" , "FeatureEnvy"})
+  private Map<String,Map<String, String>> artifacts(SBuild build){
+
+    val buildArtifacts = buildArtifacts(build);
+    if (buildArtifacts.isEmpty()) {
       return Collections.emptyMap();
     }
 
-    final Map<String, Map<String, String>> artifacts = new HashMap<String, Map<String, String>>();
+    val rootUrl   = buildServer.getRootUrl();
+    val artifacts = new HashMap<String, Map<String, String>>();
 
-    artifactsGuard.lockReading(artifactsDirectory);
-    for (val artifact : artifactsDirectory.listFiles()){
-      // http://127.0.0.1:8080/repository/download/Echo_Build/37/echo-service-0.0.1-SNAPSHOT.jar
-      val artifactName = artifact.getName();
-      if (".teamcity".equals(artifactName)) { continue; }
+    if (! isEmpty(rootUrl)) {
+      for (val artifact : buildArtifacts){
+        val artifactName = artifact.getName();
+        if (".teamcity".equals(artifactName) || isEmpty(artifactName)) { continue; }
 
-      final String url = "%s/repository/download/%s/%s/%s".f(buildServer.getRootUrl(),
-                                                             build.getBuildType().getExternalId(),
-                                                             build.getBuildNumber(),
-                                                             artifactName);
-      artifacts.put(artifactName, Maps.newHashMap(ImmutableMap.of("archive", url)));
+        // http://127.0.0.1:8080/repository/download/Echo_Build/37/echo-service-0.0.1-SNAPSHOT.jar
+        final String url = "%s/repository/download/%s/%s/%s".f(rootUrl,
+                                                               build.getBuildType().getExternalId(),
+                                                               build.getBuildNumber(),
+                                                               artifactName);
+        artifacts.put(artifactName, map("archive", url));
+      }
     }
 
-    artifactsGuard.unlockReading(artifactsDirectory);
     return Collections.unmodifiableMap(addS3Artifacts(artifacts, build));
   }
 
 
+  /**
+   * Retrieves current build's artifacts.
+   */
+  @SuppressWarnings("ConstantConditions")
+  private Collection<File> buildArtifacts(SBuild build){
+    val artifactsDirectory = build.getArtifactsDirectory();
+    if ((artifactsDirectory == null) || (! artifactsDirectory.isDirectory())) {
+      return Collections.emptyList();
+    }
+
+    try {
+      artifactsGuard.lockReading(artifactsDirectory);
+      File[] files = artifactsDirectory.listFiles();
+      return (files == null ? Collections.<File>emptyList() : Arrays.asList(files));
+    }
+    finally {
+      artifactsGuard.unlockReading(artifactsDirectory);
+    }
+  }
+
 
   /**
-   * Retrieves map of build's S3 artifacts:
+   * Updates map of build's artifacts with S3 URLs:
    * {'artifact.jar' => {'s3' => 'https://s3-artifact/url'}}
    */
-  private Map<String,Map<String, String>> addS3Artifacts(Map<String, Map<String, String>> artifacts, SRunningBuild build){
+  @SuppressWarnings("FeatureEnvy")
+  private Map<String,Map<String, String>> addS3Artifacts(Map<String, Map<String, String>> artifacts,
+                                                         @SuppressWarnings("TypeMayBeWeakened") SBuild build){
 
-    final File s3SettingsFile = new File(serverPaths.getConfigDir(), S3_SETTINGS_FILE);
+    val s3SettingsFile = new File(serverPaths.getConfigDir(), S3_SETTINGS_FILE);
 
-    if (!s3SettingsFile.isFile()) {
+    if (! s3SettingsFile.isFile()) {
       return artifacts;
     }
 
-    val s3Settings            = readJsonFile(s3SettingsFile);
-    final String bucketName   = ((String) s3Settings.get("artifactBucket")).or("");
-    final String awsAccessKey = ((String) s3Settings.get("awsAccessKey")).or("");
-    final String awsSecretKey = ((String) s3Settings.get("awsSecretKey")).or("");
+    val s3Settings   = readJsonFile(s3SettingsFile);
+    val bucketName   = ((String) s3Settings.get("artifactBucket"));
+    val awsAccessKey = ((String) s3Settings.get("awsAccessKey"));
+    val awsSecretKey = ((String) s3Settings.get("awsSecretKey"));
 
     if (isEmpty(bucketName)) {
       return artifacts;
@@ -134,36 +154,32 @@ public class WebhooksListener extends BuildServerAdapter {
         return artifacts;
       }
 
-      final String prefix = "%s/%s".f(build.getFullName().replace(" :: ", "::"),
-                                      build.getBuildNumber());
-      val objects = s3Client.listObjects(bucketName, prefix).getObjectSummaries();
-
-      if (objects.isEmpty()) {
-        return artifacts;
-      }
-
-      val region = s3Client.getBucketLocation(bucketName);
+      final String prefix = build.getFullName().replace(" :: ", "::") + '/' + build.getBuildNumber();
+      val region          = s3Client.getBucketLocation(bucketName);
+      val objects         = s3Client.listObjects(bucketName, prefix).getObjectSummaries();
 
       for (val summary : objects){
         val artifactKey = summary.getKey();
+        if (isEmpty(artifactKey)) { continue; }
+
         final String artifactName = artifactKey.split("/").last();
+        if ("build.json".equals(artifactName) || isEmpty(artifactName)) { continue; }
 
-        if ("build.json".equals(artifactName)) { continue; }
-
+        // https://s3-eu-west-1.amazonaws.com/evgenyg-bakery/Echo%3A%3ABuild/45/echo-service-0.0.1-SNAPSHOT.jar
         final String url = "https://s3-%s.amazonaws.com/%s/%s".f(region, bucketName, artifactKey);
+
         if (artifacts.containsKey(artifactName)) {
           artifacts.get(artifactName).put("s3", url);
         }
         else {
-          artifacts.put(artifactName, ImmutableMap.of("s3", url));
+          artifacts.put(artifactName, map("s3", url));
         }
       }
+    }
+    catch (Throwable t) {
+      LOG.error("Failed to list objects in S3 bucket '%s'".f(bucketName), t);
+    }
 
-      return artifacts;
-    }
-    catch (AmazonClientException e) {
-      LOG.error("Failed to list objects in S3 bucket '%s'".f(bucketName), e);
-      return artifacts;
-    }
+    return artifacts;
   }
 }

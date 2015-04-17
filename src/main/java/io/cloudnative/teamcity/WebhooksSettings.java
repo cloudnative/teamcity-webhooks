@@ -42,16 +42,15 @@ public class WebhooksSettings {
   }
 
 
-  @SneakyThrows(IOException.class)
+  @SuppressWarnings("unchecked")
   private Map<String,String> restoreSettings(){
 
     if (settingsFile.isFile()) {
       try {
-        // noinspection unchecked
         return (Map<String,String>) readJsonFile(settingsFile);
       }
       catch (Exception e) {
-        LOG.error("Failed to restore settings from '%s'".f(settingsFile.getCanonicalPath()), e);
+        LOG.error("Failed to restore settings from '%s'".f(path(settingsFile), e));
       }
     }
 
