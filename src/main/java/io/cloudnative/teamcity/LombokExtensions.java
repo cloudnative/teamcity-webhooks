@@ -11,7 +11,9 @@ import lombok.experimental.UtilityClass;
 class LombokExtensions {
 
   @NonNull
-  <T> T or(T o, @NonNull T defaultOption) { return (o != null ? o : defaultOption); }
+  <T> T or(T o, @NonNull T defaultOption) {
+    return (o != null ? o : defaultOption);
+  }
 
   @NonNull
   String last(@NonNull String[] array) {
@@ -24,5 +26,7 @@ class LombokExtensions {
   }
 
   @NonNull
-  String f(@NonNull String s, @NonNull Object ... args){ return String.format(s, args); }
+  String f(@NonNull String s, @NonNull Object ... args){
+    return String.format(s, args);
+  }
 }

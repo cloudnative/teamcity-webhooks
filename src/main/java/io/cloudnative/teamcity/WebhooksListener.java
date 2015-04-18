@@ -22,10 +22,10 @@ import java.util.*;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class WebhooksListener extends BuildServerAdapter {
 
-  @NonNull WebhooksSettings   settings;
-  @NonNull SBuildServer       buildServer;
-  @NonNull ServerPaths        serverPaths;
-  @NonNull ArtifactsGuard     artifactsGuard;
+  @NonNull WebhooksSettings settings;
+  @NonNull SBuildServer     buildServer;
+  @NonNull ServerPaths      serverPaths;
+  @NonNull ArtifactsGuard   artifactsGuard;
 
 
   public void register(){
@@ -47,21 +47,33 @@ public class WebhooksListener extends BuildServerAdapter {
 
   @SuppressWarnings({"FeatureEnvy" , "ConstantConditions"})
   @SneakyThrows(VcsException.class)
-  private WebhookPayload buildPayload(SRunningBuild build){
-    val buildType = build.getBuildType();
-    val status    = buildType.getStatusDescriptor().getStatusDescriptor().getText();
-    val vcsRoots  = buildType.getVcsRootInstanceEntries();
-    Scm scm = null;
+  private WebhookPayload buildPayload(SBuild build){
+    Scm scm      = null;
+    val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
 
     if (! vcsRoots.isEmpty()) {
       val vcsRoot = vcsRoots.get(0).getVcsRoot();
       scm = Scm.builder().url(vcsRoot.getProperty("url")).
-                          branch(vcsRoot.getProperty("branch")).
+                          branch(vcsRoot.getProperty("branch").replace("refs/heads/", "origin/")).
                           commit(vcsRoot.getCurrentRevision().getVersion()).build();
     }
 
-    val buildPayload = PayloadBuild.builder().status(status).scm(scm).artifacts(artifacts(build)).build();
-    return WebhookPayload.of(build.getFullName(), buildPayload);
+    final PayloadBuild payloadBuild = PayloadBuild.builder().
+      // http://127.0.0.1:8080/viewLog.html?buildTypeId=Echo_Build&buildId=90
+      full_url("%s/viewLog.html?buildTypeId=%s&buildId=%s".f(buildServer.getRootUrl(),
+                                                             build.getBuildType().getExternalId(),
+                                                             build.getBuildId())).
+      build_id(build.getBuildNumber()).
+      status(build.getBuildType().getStatusDescriptor().getStatusDescriptor().getText().toLowerCase()).
+      scm(scm).
+      artifacts(artifacts(build)).
+      build();
+
+    return WebhookPayload.of(build.getFullName(),
+                             // http://127.0.0.1:8080/viewType.html?buildTypeId=Echo_Build
+                             "%s/viewType.html?buildTypeId=%s".f(buildServer.getRootUrl(),
+                                                                 build.getBuildType().getExternalId()),
+                             payloadBuild);
   }
 
 
@@ -72,7 +84,7 @@ public class WebhooksListener extends BuildServerAdapter {
    * https://devnet.jetbrains.com/message/5257486
    * https://confluence.jetbrains.com/display/TCD8/Patterns+For+Accessing+Build+Artifacts
    */
-  @SuppressWarnings({"ConstantConditions" , "TypeMayBeWeakened" , "CollectionDeclaredAsConcreteClass" , "FeatureEnvy"})
+  @SuppressWarnings({"ConstantConditions", "CollectionDeclaredAsConcreteClass", "FeatureEnvy"})
   private Map<String,Map<String, String>> artifacts(SBuild build){
 
     val buildArtifacts = buildArtifacts(build);
@@ -81,6 +93,7 @@ public class WebhooksListener extends BuildServerAdapter {
     }
 
     val rootUrl   = buildServer.getRootUrl();
+    @SuppressWarnings("TypeMayBeWeakened")
     val artifacts = new HashMap<String, Map<String, String>>();
 
     if (! isEmpty(rootUrl)) {
