@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.artifacts.ArtifactsGuard;
 import jetbrains.buildServer.vcs.VcsException;
+import jodd.http.HttpRequest;
 import lombok.*;
 import lombok.experimental.ExtensionMethod;
 import lombok.experimental.FieldDefaults;
@@ -36,8 +37,12 @@ public class WebhooksListener extends BuildServerAdapter {
   @Override
   public void buildFinished(SRunningBuild build) {
     try {
-      String payload = new Gson().toJson(buildPayload(build));
-      LOG.info("Project '%s' finished, payload is '%s'".f(build.getBuildTypeExternalId(), payload));
+      val payload = new Gson().toJson(buildPayload(build));
+      LOG.info("Project '%s' finished, payload is '%s'".f(build.getFullName(), payload));
+      for (val url : settings.getUrls(build.getProjectExternalId())){
+        HttpRequest.post(url).body(payload).send();
+        LOG.info("Payload is POST-ed to '%s'".f(url));
+      }
     }
     catch (Throwable t) {
       LOG.error("Failed to listen on buildFinished() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);

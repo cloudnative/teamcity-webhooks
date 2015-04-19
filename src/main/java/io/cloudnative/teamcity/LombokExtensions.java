@@ -11,7 +11,7 @@ import lombok.experimental.UtilityClass;
 class LombokExtensions {
 
   @NonNull
-  <T> T or(T o, @NonNull T defaultOption) {
+  <T> T or(T o, T defaultOption) {
     return (o != null ? o : defaultOption);
   }
 

@@ -41,9 +41,10 @@ public class WebhooksProjectTab extends ProjectTab {
                             @NotNull  SProject project,
                             @Nullable SUser user){
     val projectId = project.getExternalId();
+    val urls      = settings.getUrls(projectId);
     model.putAll(ImmutableMap.of("projectId", projectId,
-                                 "url", settings.getUrl(projectId),
-                                 "action", PLUGIN_NAME + "/" + CONTROLLER_PATH));
+                                 "url",       urls.isEmpty() ? "" : urls.iterator().next(),
+                                 "action",    PLUGIN_NAME + "/" + CONTROLLER_PATH));
   }
 
 

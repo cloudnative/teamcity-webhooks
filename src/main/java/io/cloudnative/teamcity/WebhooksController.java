@@ -40,7 +40,7 @@ public class WebhooksController extends BaseController {
     @NonNull val projectId = request.getParameter("projectId");
     @NonNull val url       = request.getParameter("url");
 
-    settings.setUrl(projectId, url);
+    settings.addUrl(projectId, url);
     return new ModelAndView("redirect:/project.html?projectId=%s&tab=%s".f(projectId, PLUGIN_NAME));
   }
 }

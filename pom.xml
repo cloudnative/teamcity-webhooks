@@ -7,27 +7,12 @@
   <artifactId>webhooks</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-  <properties>
-    <maven.build.timestamp.format>dd-MM-yyyy-HH:mm:ss</maven.build.timestamp.format>
-  </properties>
-
   <repositories>
     <repository>
       <id>JetBrains</id>
       <url>http://repository.jetbrains.com/all</url>
     </repository>
   </repositories>
-
-  <developers>
-    <developer>
-      <id>evgenyg</id>
-      <name>Evgeny Goldin</name>
-      <url>http://evgenyg.io/</url>
-      <roles>
-        <role>developer</role>
-      </roles>
-    </developer>
-  </developers>
 
   <build>
     <defaultGoal>package</defaultGoal>
@@ -50,7 +35,7 @@
           <replacements>
             <replacement>
               <token>@Version@</token>
-              <value>${maven.build.timestamp}</value>
+              <value>${project.version}</value>
             </replacement>
           </replacements>
         </configuration>
@@ -160,13 +145,5 @@
       <version>6.0.5</version>
       <scope>provided</scope>
     </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-    </dependency>
-
   </dependencies>
 </project>

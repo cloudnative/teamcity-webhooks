@@ -2,7 +2,7 @@ package io.cloudnative.teamcity;
 
 import static io.cloudnative.teamcity.WebhooksConstants.*;
 import static io.cloudnative.teamcity.WebhooksUtils.*;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import jetbrains.buildServer.serverSide.ServerPaths;
@@ -11,18 +11,19 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.ExtensionMethod;
 import lombok.experimental.FieldDefaults;
+import lombok.val;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Map;
+import java.util.*;
 
 
 @ExtensionMethod(LombokExtensions.class)
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class WebhooksSettings {
 
-  File               settingsFile;
-  Map<String,String> urls;
+  File                    settingsFile;
+  Map<String,Set<String>> urls;
 
   public WebhooksSettings(ServerPaths serverPaths) {
     settingsFile = new File(serverPaths.getConfigDir(), SETTINGS_FILE);
@@ -30,31 +31,43 @@ public class WebhooksSettings {
   }
 
 
+  @SuppressWarnings("ConstantConditions")
   @NonNull
-  String getUrl(@NonNull String projectId){
-    return urls.get(projectId).or("");
+  Set<String> getUrls(@NonNull String projectId){
+    return urls.get(projectId).or(Collections.<String>emptySet());
   }
 
 
-  void setUrl(@NonNull String projectId, @NonNull String url){
-    urls.put(projectId, url);
+  void addUrl(@NonNull String projectId, @NonNull String url){
+
+    if (! urls.containsKey(projectId)) {
+      urls.put(projectId, Sets.<String>newHashSet());
+    }
+
+    urls.get(projectId).add(url);
     saveSettings();
   }
 
 
   @SuppressWarnings("unchecked")
-  private Map<String,String> restoreSettings(){
+  private Map<String,Set<String>> restoreSettings(){
+
+    @SuppressWarnings({"TypeMayBeWeakened", "CollectionDeclaredAsConcreteClass"})
+    val result = new HashMap<String, Set<String>>();
 
     if (settingsFile.isFile()) {
       try {
-        return (Map<String,String>) readJsonFile(settingsFile);
+        Map<String, List<String>> map = (Map<String, List<String>>) readJsonFile(settingsFile);
+        for (String url : map.keySet()){
+          result.put(url, Sets.newHashSet(map.get(url)));
+        }
       }
       catch (Exception e) {
         LOG.error("Failed to restore settings from '%s'".f(path(settingsFile), e));
       }
     }
 
-    return Maps.newHashMap();
+    return result;
   }
 
 
