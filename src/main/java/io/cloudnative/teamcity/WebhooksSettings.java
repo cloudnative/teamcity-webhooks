@@ -25,7 +25,7 @@ public class WebhooksSettings {
   File                    settingsFile;
   Map<String,Set<String>> urls;
 
-  public WebhooksSettings(ServerPaths serverPaths) {
+  public WebhooksSettings(@NonNull ServerPaths serverPaths) {
     settingsFile = new File(serverPaths.getConfigDir(), SETTINGS_FILE);
     urls         = restoreSettings();
   }
@@ -41,7 +41,7 @@ public class WebhooksSettings {
   void addUrl(@NonNull String projectId, @NonNull String url){
 
     if (! urls.containsKey(projectId)) {
-      urls.put(projectId, Sets.<String>newHashSet());
+      urls.put(projectId, new HashSet<String>());
     }
 
     urls.get(projectId).add(url);

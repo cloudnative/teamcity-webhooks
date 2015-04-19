@@ -11,6 +11,7 @@ import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.artifacts.ArtifactsGuard;
 import jetbrains.buildServer.vcs.VcsException;
 import jodd.http.HttpRequest;
+import jodd.http.net.SocketHttpConnection;
 import lombok.*;
 import lombok.experimental.ExtensionMethod;
 import lombok.experimental.FieldDefaults;
@@ -35,14 +36,19 @@ public class WebhooksListener extends BuildServerAdapter {
 
 
   @Override
-  public void buildFinished(SRunningBuild build) {
+  public void buildFinished(@NonNull SRunningBuild build) {
+    val time = System.currentTimeMillis();
     try {
-      val payload = new Gson().toJson(buildPayload(build));
-      LOG.info("Project '%s' finished, payload is '%s'".f(build.getFullName(), payload));
+      val gson    = new Gson();
+      val payload = gson.toJson(buildPayload(build));
+      gson.fromJson(payload, Map.class);
+      LOG.info("Build '%s/#%s' finished, payload is '%s'".f(build.getFullName(), build.getBuildNumber(), payload));
+
       for (val url : settings.getUrls(build.getProjectExternalId())){
-        HttpRequest.post(url).body(payload).send();
-        LOG.info("Payload is POST-ed to '%s'".f(url));
+        postPayload(url, payload);
       }
+
+      LOG.info("Payloads constructed and sent in %s ms".f(System.currentTimeMillis() - time));
     }
     catch (Throwable t) {
       LOG.error("Failed to listen on buildFinished() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
@@ -52,7 +58,7 @@ public class WebhooksListener extends BuildServerAdapter {
 
   @SuppressWarnings({"FeatureEnvy" , "ConstantConditions"})
   @SneakyThrows(VcsException.class)
-  private WebhookPayload buildPayload(SBuild build){
+  private WebhookPayload buildPayload(@NonNull SBuild build){
     Scm scm      = null;
     val vcsRoots = build.getBuildType().getVcsRootInstanceEntries();
 
@@ -82,6 +88,26 @@ public class WebhooksListener extends BuildServerAdapter {
   }
 
 
+  private void postPayload(@NonNull String url, @NonNull String payload){
+    try {
+      val request  = HttpRequest.post(url).body(payload).open();
+      // http://jodd.org/doc/http.html#sockethttpconnection
+      ((SocketHttpConnection) request.httpConnection()).getSocket().setSoTimeout(POST_TIMEOUT);
+      val response = request.send();
+      if (response.statusCode() == 200) {
+        LOG.info("Payload POST-ed to '%s'".f(url));
+      }
+      else {
+        LOG.error("POST-ing payload to '%s' - got %s response: %s".
+          f(url, response.statusCode(), response));
+      }
+    }
+    catch (Throwable t) {
+      LOG.error("Failed to POST payload to '%s'".f(url), t);
+    }
+  }
+
+
   /**
    * Retrieves map of build's artifacts (archived in TeamCity and uploaded to S3):
    * {'artifact.jar' => {'archive' => 'http://teamcity/artifact/url', 's3' => 'https://s3-artifact/url'}}
@@ -90,7 +116,7 @@ public class WebhooksListener extends BuildServerAdapter {
    * https://confluence.jetbrains.com/display/TCD8/Patterns+For+Accessing+Build+Artifacts
    */
   @SuppressWarnings({"ConstantConditions", "CollectionDeclaredAsConcreteClass", "FeatureEnvy"})
-  private Map<String,Map<String, String>> artifacts(SBuild build){
+  private Map<String,Map<String, String>> artifacts(@NonNull SBuild build){
 
     val buildArtifacts = buildArtifacts(build);
     if (buildArtifacts.isEmpty()) {
@@ -123,7 +149,7 @@ public class WebhooksListener extends BuildServerAdapter {
    * Retrieves current build's artifacts.
    */
   @SuppressWarnings("ConstantConditions")
-  private Collection<File> buildArtifacts(SBuild build){
+  private Collection<File> buildArtifacts(@NonNull SBuild build){
     val artifactsDirectory = build.getArtifactsDirectory();
     if ((artifactsDirectory == null) || (! artifactsDirectory.isDirectory())) {
       return Collections.emptyList();
@@ -145,8 +171,8 @@ public class WebhooksListener extends BuildServerAdapter {
    * {'artifact.jar' => {'s3' => 'https://s3-artifact/url'}}
    */
   @SuppressWarnings("FeatureEnvy")
-  private Map<String,Map<String, String>> addS3Artifacts(Map<String, Map<String, String>> artifacts,
-                                                         @SuppressWarnings("TypeMayBeWeakened") SBuild build){
+  private Map<String,Map<String, String>> addS3Artifacts(@NonNull Map<String, Map<String, String>> artifacts,
+                                                         @NonNull @SuppressWarnings("TypeMayBeWeakened") SBuild build){
 
     val s3SettingsFile = new File(serverPaths.getConfigDir(), S3_SETTINGS_FILE);
 
