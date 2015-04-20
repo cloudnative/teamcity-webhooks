@@ -41,7 +41,7 @@ public class WebhooksListener extends BuildServerAdapter {
     try {
       val gson    = new Gson();
       val payload = gson.toJson(buildPayload(build));
-      gson.fromJson(payload, Map.class);
+      gson.fromJson(payload, Map.class); // Sanity check of JSON generated
       LOG.info("Build '%s/#%s' finished, payload is '%s'".f(build.getFullName(), build.getBuildNumber(), payload));
 
       for (val url : settings.getUrls(build.getProjectExternalId())){
@@ -88,12 +88,16 @@ public class WebhooksListener extends BuildServerAdapter {
   }
 
 
+  /**
+   * POSTs payload to the URL specified
+   */
   private void postPayload(@NonNull String url, @NonNull String payload){
     try {
       val request  = HttpRequest.post(url).body(payload).open();
       // http://jodd.org/doc/http.html#sockethttpconnection
       ((SocketHttpConnection) request.httpConnection()).getSocket().setSoTimeout(POST_TIMEOUT);
       val response = request.send();
+
       if (response.statusCode() == 200) {
         LOG.info("Payload POST-ed to '%s'".f(url));
       }
