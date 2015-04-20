@@ -48,7 +48,7 @@ public class WebhooksListener extends BuildServerAdapter {
         postPayload(url, payload);
       }
 
-      log("Payloads constructed and sent in %s ms".f(System.currentTimeMillis() - time));
+      log("Operation finished in %s ms".f(System.currentTimeMillis() - time));
     }
     catch (Throwable t) {
       error("Failed to listen on buildFinished() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
