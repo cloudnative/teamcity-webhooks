@@ -1,5 +1,6 @@
 package io.cloudnative.teamcity;
 
+import static io.cloudnative.teamcity.WebhooksConstants.*;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import lombok.NonNull;
@@ -60,5 +61,25 @@ final class WebhooksUtils {
       }
     }
     return false;
+  }
+
+
+  static void log(@NonNull String message){
+    LOG.info("WebHooks plugin - " + message);
+  }
+
+
+  static void error(@NonNull String message){
+    error(message, null);
+  }
+
+
+  static void error(@NonNull String message, Throwable error){
+    if (error == null) {
+      LOG.error("WebHooks plugin - " + message);
+    }
+    else {
+      LOG.error("WebHooks plugin - " + message, error);
+    }
   }
 }

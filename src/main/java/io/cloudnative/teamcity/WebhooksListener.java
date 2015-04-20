@@ -42,16 +42,16 @@ public class WebhooksListener extends BuildServerAdapter {
       val gson    = new Gson();
       val payload = gson.toJson(buildPayload(build));
       gson.fromJson(payload, Map.class); // Sanity check of JSON generated
-      LOG.info("Build '%s/#%s' finished, payload is '%s'".f(build.getFullName(), build.getBuildNumber(), payload));
+      log("Build '%s/#%s' finished, payload is '%s'".f(build.getFullName(), build.getBuildNumber(), payload));
 
       for (val url : settings.getUrls(build.getProjectExternalId())){
         postPayload(url, payload);
       }
 
-      LOG.info("Payloads constructed and sent in %s ms".f(System.currentTimeMillis() - time));
+      log("Payloads constructed and sent in %s ms".f(System.currentTimeMillis() - time));
     }
     catch (Throwable t) {
-      LOG.error("Failed to listen on buildFinished() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
+      error("Failed to listen on buildFinished() of '%s' #%s".f(build.getFullName(), build.getBuildNumber()), t);
     }
   }
 
@@ -99,15 +99,14 @@ public class WebhooksListener extends BuildServerAdapter {
       val response = request.send();
 
       if (response.statusCode() == 200) {
-        LOG.info("Payload POST-ed to '%s'".f(url));
+        log("Payload POST-ed to '%s'".f(url));
       }
       else {
-        LOG.error("POST-ing payload to '%s' - got %s response: %s".
-          f(url, response.statusCode(), response));
+        error("POST-ing payload to '%s' - got %s response: %s".f(url, response.statusCode(), response));
       }
     }
     catch (Throwable t) {
-      LOG.error("Failed to POST payload to '%s'".f(url), t);
+      error("Failed to POST payload to '%s'".f(url), t);
     }
   }
 
@@ -225,7 +224,7 @@ public class WebhooksListener extends BuildServerAdapter {
       }
     }
     catch (Throwable t) {
-      LOG.error("Failed to list objects in S3 bucket '%s'".f(bucketName), t);
+      error("Failed to list objects in S3 bucket '%s'".f(bucketName), t);
     }
 
     return artifacts;

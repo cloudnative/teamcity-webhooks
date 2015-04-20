@@ -62,8 +62,8 @@ public class WebhooksSettings {
           result.put(url, Sets.newHashSet(map.get(url)));
         }
       }
-      catch (Exception e) {
-        LOG.error("Failed to restore settings from '%s'".f(path(settingsFile), e));
+      catch (Throwable t) {
+        error("Failed to restore settings from '%s'".f(path(settingsFile)), t);
       }
     }
 
