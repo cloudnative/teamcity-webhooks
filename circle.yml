@@ -37,6 +37,5 @@ deployment:
       - git checkout master
       - git reset --hard origin/master
       - mvn --batch-mode clean release:prepare
-      - echo "Uploading 'target/webhooks.zip' to '$BINTRAY_URL/$(git tag|tail -1)/webhooks.zip'"
       # https://bintray.com/docs/api/#_upload_content
-      - curl --user "cloudnative:$BINTRAY_API_KEY" --upload-file 'target/webhooks.zip' "$BINTRAY_URL/$(git tag|tail -1)/webhooks.zip?publish=1"
+      - curl --user "cloudnative:$BINTRAY_API_KEY" --upload-file 'target/webhooks.zip' "https://api.bintray.com/content/cloudnative/teamcity/teamcity-webhooks/$(git tag|tail -1)/teamcity-webhooks/$(git tag|tail -1)/webhooks.zip?publish=1"
