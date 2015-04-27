@@ -11,7 +11,7 @@ dependencies:
   override:
     - git checkout -f
     - git clean    -df
-    - mvn clean package release:clean # So that release plugin gets cached
+#    - mvn clean package release:clean # So that release plugin gets cached
 
 test:
   override:
@@ -24,15 +24,23 @@ general:
 deployment:
   bintray:
     branch: release
+    # Release is performed on "master" branch to avoid pushes of updated POM
+    # to "release" which triggers yet another release build.
+    # "release" content is ignored, pushing to this branch only serves as a release trigger
     commands:
       - git tag | xargs git tag -d
       - git checkout -f
       - git clean    -df
       - git config user.email "evgenyg@gmail.com"
       - git config user.name  "CircleCI"
-      - mvn --batch-mode clean release:prepare
+      - git fetch origin
       - git checkout master
-      - git merge release
+      - git reset --hard origin/master
+      - git remote remove origin
+      - git remote add origin git@github.com:cloudnative/teamcity-webhooks.git
+      - mvn --batch-mode clean release:prepare
       - git push origin master
+      - git push origin "$(git tag|tail -1)"
       - echo "Uploading 'target/webhooks.zip' to '$BINTRAY_URL/$(git tag|tail -1)/webhooks.zip'"
       - curl --user "cloudnative:$BINTRAY_API_KEY" --upload-file 'target/webhooks.zip' "$BINTRAY_URL/$(git tag|tail -1)/webhooks.zip"
+

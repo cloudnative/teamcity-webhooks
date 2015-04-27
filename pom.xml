@@ -90,6 +90,7 @@
         <configuration>
           <tagNameFormat>@{version}</tagNameFormat>
           <suppressCommitBeforeTag>true</suppressCommitBeforeTag>
+          <remoteTagging>false</remoteTagging>
         </configuration>
       </plugin>
     </plugins>
