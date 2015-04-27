@@ -1,6 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.cloudnative.teamcity</groupId>
@@ -9,10 +7,14 @@
 
   <repositories>
     <repository>
-      <id>JetBrains</id>
+      <id>jetbrains</id>
       <url>http://repository.jetbrains.com/all</url>
     </repository>
   </repositories>
+
+  <scm>
+    <developerConnection>scm:git:git@github.com:evgeny-goldin/teamcity-webhooks.git</developerConnection>
+  </scm>
 
   <build>
     <defaultGoal>package</defaultGoal>
@@ -43,6 +45,22 @@
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.6</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.5.3</version>
         <executions>
@@ -65,19 +83,9 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.3</version>
-        <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
-        </configuration>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.6</version>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.2</version>
       </plugin>
     </plugins>
   </build>
@@ -93,7 +101,7 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-s3</artifactId>
-      <version>1.9.31</version>
+      <version>1.9.32</version>
       <scope>compile</scope>
     </dependency>
 
@@ -107,7 +115,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.16.2</version>
+      <version>1.16.4</version>
       <scope>compile</scope>
     </dependency>
 
@@ -117,6 +125,10 @@
       <version>18.0</version>
       <scope>compile</scope>
     </dependency>
+
+    <!-- ======================================================= -->
+    <!-- DO NOT update dependencies below, they should match TC8 -->
+    <!-- ======================================================= -->
 
     <dependency>
       <groupId>org.jetbrains.teamcity</groupId>
