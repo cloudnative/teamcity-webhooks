@@ -1,0 +1,38 @@
+---
+# https://circleci.com/docs/configuration
+
+machine:
+  java:
+    version: oraclejdk8
+
+dependencies:
+  cache_directories:
+    - ~/.m2
+  override:
+    - git checkout -f
+    - git clean    -df
+    - mvn clean package release:clean # So that release plugin gets cached
+
+test:
+  override:
+    - sleep 0
+
+general:
+  artifacts:
+    - target/webhooks.zip
+
+deployment:
+  bintray:
+    branch: release
+    commands:
+      - git tag | xargs git tag -d
+      - git checkout -f
+      - git clean    -df
+      - git config user.email "evgenyg@gmail.com"
+      - git config user.name  "CircleCI"
+      - mvn --batch-mode clean release:prepare
+      - git checkout master
+      - git merge release
+      - git push origin master
+      - echo "Uploading 'target/webhooks.zip' to '$BINTRAY_URL/$(git tag|tail -1)/webhooks.zip'"
+      - curl --user "cloudnative:$BINTRAY_API_KEY" --upload-file 'target/webhooks.zip' "$BINTRAY_URL/$(git tag|tail -1)/webhooks.zip"

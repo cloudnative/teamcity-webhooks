@@ -13,7 +13,8 @@
   </repositories>
 
   <scm>
-    <developerConnection>scm:git:git@github.com:evgeny-goldin/teamcity-webhooks.git</developerConnection>
+    <developerConnection>scm:git:git@github.com:cloudnative/teamcity-webhooks.git</developerConnection>
+    <tag>HEAD</tag>
   </scm>
 
   <build>
@@ -83,9 +84,12 @@
       </plugin>
 
       <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>2.5.2</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.2</version>
+        <configuration>
+          <tagNameFormat>@{version}</tagNameFormat>
+        </configuration>
       </plugin>
     </plugins>
   </build>
