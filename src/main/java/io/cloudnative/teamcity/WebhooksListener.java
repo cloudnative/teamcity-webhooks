@@ -201,16 +201,22 @@ public class WebhooksListener extends BuildServerAdapter {
         return artifacts;
       }
 
-      final String prefix = build.getFullName().replace(" :: ", "::") + '/' + build.getBuildNumber();
-      val region          = s3Client.getBucketLocation(bucketName);
-      val objects         = s3Client.listObjects(bucketName, prefix).getObjectSummaries();
+      // "Echo::Build/15/"
+      final String prefix = "%s/%s/".f(build.getFullName().replace(" :: ", "::"), build.getBuildNumber());
+      val objects = s3Client.listObjects(bucketName, prefix).getObjectSummaries();
+
+      if (objects.isEmpty()) {
+        return artifacts;
+      }
+
+      val region = s3Client.getBucketLocation(bucketName);
 
       for (val summary : objects){
         val artifactKey = summary.getKey();
-        if (isEmpty(artifactKey)) { continue; }
+        if (isEmpty(artifactKey) || artifactKey.endsWith("/build.json")) { continue; }
 
         final String artifactName = artifactKey.split("/").last();
-        if ("build.json".equals(artifactName) || isEmpty(artifactName)) { continue; }
+        if (isEmpty(artifactName)) { continue; }
 
         // https://s3-eu-west-1.amazonaws.com/evgenyg-bakery/Echo%3A%3ABuild/45/echo-service-0.0.1-SNAPSHOT.jar
         final String url = "https://s3-%s.amazonaws.com/%s/%s".f(region, bucketName, artifactKey);
