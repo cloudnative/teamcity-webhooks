@@ -64,6 +64,26 @@ final class WebhooksUtils {
   }
 
 
+  /**
+   * Determines if String specified is not null and non-empty.
+   */
+  static boolean notEmpty(String s){
+    return (! isEmpty(s));
+  }
+
+
+  /**
+   * Verifies String specified is not null and non-empty.
+   */
+  @SuppressWarnings("StaticMethodOnlyUsedInOneClass")
+  static String notEmpty(String s, @NonNull String message){
+    if (isEmpty(s)) {
+      throw new RuntimeException(message);
+    }
+    return s;
+  }
+
+
   static void log(@NonNull String message){
     LOG.info("WebHooks plugin - " + message);
   }

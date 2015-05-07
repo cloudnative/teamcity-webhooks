@@ -2,6 +2,7 @@ package io.cloudnative.teamcity;
 
 import static io.cloudnative.teamcity.WebhooksConstants.*;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Ordering;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.users.SUser;
@@ -41,10 +42,9 @@ public class WebhooksProjectTab extends ProjectTab {
                             @NotNull  SProject project,
                             @Nullable SUser user){
     val projectId = project.getExternalId();
-    val urls      = settings.getUrls(projectId);
     model.putAll(ImmutableMap.of("projectId", projectId,
-                                 "url",       urls.isEmpty() ? "" : urls.iterator().next(),
-                                 "action",    PLUGIN_NAME + "/" + CONTROLLER_PATH));
+                                 "urls",      Ordering.natural().immutableSortedCopy(settings.getUrls(projectId)),
+                                 "action",    CONTROLLER_PATH));
   }
 
 

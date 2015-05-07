@@ -130,7 +130,7 @@ public class WebhooksListener extends BuildServerAdapter {
     @SuppressWarnings("TypeMayBeWeakened")
     val artifacts = new HashMap<String, Map<String, String>>();
 
-    if (! isEmpty(rootUrl)) {
+    if (notEmpty(rootUrl)) {
       for (val artifact : buildArtifacts){
         val artifactName = artifact.getName();
         if (".teamcity".equals(artifactName) || isEmpty(artifactName)) { continue; }

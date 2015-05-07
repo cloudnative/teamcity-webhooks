@@ -2,6 +2,7 @@ package io.cloudnative.teamcity;
 
 
 import static io.cloudnative.teamcity.WebhooksConstants.*;
+import static io.cloudnative.teamcity.WebhooksUtils.*;
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import lombok.AccessLevel;
@@ -29,18 +30,31 @@ public class WebhooksController extends BaseController {
   @NonNull WebhooksSettings     settings;
 
   public void register(){
-    webManager.registerController("/%s/%s".f(PLUGIN_NAME, CONTROLLER_PATH), this);
+    webManager.registerController("/" + CONTROLLER_PATH, this);
   }
 
 
   @Nullable
   @Override
+  @SuppressWarnings("FeatureEnvy")
   protected ModelAndView doHandle(@NotNull HttpServletRequest  request,
                                   @NotNull HttpServletResponse response) throws Exception {
-    @NonNull val projectId = request.getParameter("projectId");
-    @NonNull val url       = request.getParameter("url");
 
-    settings.addUrl(projectId, url);
+    val projectId = notEmpty(request.getParameter("projectId"), "Missing 'projectId' parameter in request");
+    val delete    = request.getParameter("delete");
+    val add       = request.getParameter("add");
+
+    if (notEmpty(delete)) {
+      final String urlToDelete = notEmpty(request.getParameter(delete),
+                                          "Missing '%s' parameter in request (url to delete)".f(delete));
+      settings.removeUrl(projectId, urlToDelete);
+    }
+    else if (notEmpty(add)){
+      final String urlToAdd = notEmpty(request.getParameter(add),
+                                       "Missing '%s' parameter in request (url to add)".f(add));
+      settings.addUrl(projectId, urlToAdd);
+    }
+
     return new ModelAndView("redirect:/project.html?projectId=%s&tab=%s".f(projectId, PLUGIN_NAME));
   }
 }

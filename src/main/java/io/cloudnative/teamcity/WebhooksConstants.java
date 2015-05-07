@@ -8,7 +8,7 @@ import jetbrains.buildServer.log.Loggers;
 interface WebhooksConstants {
   String PLUGIN_TITLE       = "WebHooks";
   String PLUGIN_NAME        = PLUGIN_TITLE.toLowerCase();
-  String CONTROLLER_PATH    = "index.html";
+  String CONTROLLER_PATH    = PLUGIN_NAME + "/index.html";
   String SETTINGS_FILE      = PLUGIN_NAME + ".json";
   String S3_SETTINGS_FILE   = "s3.json";
   int    POST_TIMEOUT       = 10000;
