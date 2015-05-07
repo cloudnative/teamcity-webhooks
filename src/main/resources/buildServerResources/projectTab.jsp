@@ -12,7 +12,7 @@
     </tr>
   </c:forEach>
   <tr>
-    <td><input name="new-url" type="text" value="" size="64" maxlength="256"/></td>
+    <td><input name="new-url" type="text" value="" size="64" maxlength="256" autofocus/></td>
     <td><button name="add" value="new-url" class="submitButton" type="submit">Add</button></td>
   </tr>
 </form>

@@ -34,21 +34,21 @@ public class WebhooksSettings {
   @SuppressWarnings("ConstantConditions")
   @NonNull
   Set<String> getUrls(@NonNull String projectId){
-    if (! urls.containsKey(projectId)) {
-      urls.put(projectId, Sets.<String>newHashSet());
+    if (! urls.containsKey(notEmpty(projectId, "Empty projectId"))) {
+      urls.put(projectId, new HashSet<String>());
     }
     return urls.get(projectId);
   }
 
 
   void addUrl(@NonNull String projectId, @NonNull String url){
-    getUrls(projectId).add(url);
+    getUrls(projectId).add(notEmpty(url, "Empty URL can not be added"));
     saveSettings();
   }
 
 
   void removeUrl(@NonNull String projectId, @NonNull String url){
-    getUrls(projectId).remove(url);
+    getUrls(projectId).remove(notEmpty(url, "Empty URL should not be removed"));
     saveSettings();
   }
 

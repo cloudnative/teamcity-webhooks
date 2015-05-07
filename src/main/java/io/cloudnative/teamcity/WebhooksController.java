@@ -44,15 +44,20 @@ public class WebhooksController extends BaseController {
     val delete    = request.getParameter("delete");
     val add       = request.getParameter("add");
 
+    if (isEmpty(delete) && isEmpty(add)) {
+      throw new RuntimeException("Unknown operation: neither 'delete' nor 'add'");
+    }
+
     if (notEmpty(delete)) {
       final String urlToDelete = notEmpty(request.getParameter(delete),
                                           "Missing '%s' parameter in request (url to delete)".f(delete));
       settings.removeUrl(projectId, urlToDelete);
     }
-    else if (notEmpty(add)){
-      final String urlToAdd = notEmpty(request.getParameter(add),
-                                       "Missing '%s' parameter in request (url to add)".f(add));
-      settings.addUrl(projectId, urlToAdd);
+    else {
+      val urlToAdd = request.getParameter(add);
+      if (notEmpty(urlToAdd)) {
+        settings.addUrl(projectId, urlToAdd);
+      }
     }
 
     return new ModelAndView("redirect:/project.html?projectId=%s&tab=%s".f(projectId, PLUGIN_NAME));
