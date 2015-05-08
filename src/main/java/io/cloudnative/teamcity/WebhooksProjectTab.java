@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Ordering;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.web.openapi.PagePlaces;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
@@ -42,9 +43,11 @@ public class WebhooksProjectTab extends ProjectTab {
                             @NotNull  SProject project,
                             @Nullable SUser user){
     val projectId = project.getExternalId();
-    model.putAll(ImmutableMap.of("projectId", projectId,
-                                 "urls",      Ordering.natural().immutableSortedCopy(settings.getUrls(projectId)),
-                                 "action",    CONTROLLER_PATH));
+    model.putAll(ImmutableMap.of(
+      "projectId", projectId,
+      "canEdit",   (user != null) && user.getPermissionsGrantedForProject(projectId).contains(Permission.EDIT_PROJECT),
+      "urls",      Ordering.natural().immutableSortedCopy(settings.getUrls(projectId)),
+      "action",    CONTROLLER_PATH));
   }
 
 
