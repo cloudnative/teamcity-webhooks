@@ -68,8 +68,16 @@ If you're using [TeamCity S3 plugin](https://github.com/guardian/teamcity-s3-plu
 
 ## Releasing a new plugin's version:
 
+Here I assume `"origin"` refers to the [github.com/cloudnative/teamcity-webhooks](https://github.com/cloudnative/teamcity-webhooks) repo.
+
     git checkout release
     git merge master
     git push origin release
 
-This will trigger a release build at [circleci.com/gh/cloudnative/teamcity-webhooks](https://circleci.com/gh/cloudnative/teamcity-webhooks) and upload the new version to [dl.bintray.com/cloudnative/teamcity/teamcity-webhooks/](https://dl.bintray.com/cloudnative/teamcity/teamcity-webhooks/). The release is made from the "master" branch, the actual content pushed to "release" doesn't really matter. DO NOT push to "master" while the release build is running, let it finish first.
+
+This will trigger a release build at [circleci.com/gh/cloudnative/teamcity-webhooks](https://circleci.com/gh/cloudnative/teamcity-webhooks) and upload the new version to [dl.bintray.com/cloudnative/teamcity/teamcity-webhooks/](https://dl.bintray.com/cloudnative/teamcity/teamcity-webhooks/). The release is made from the "master" branch, the actual content pushed to "release" doesn't really matter. DO NOT push to "master" while the release build is running, **let it finish first**. Then execute:
+
+    git checkout master
+    git pull origin master
+
+.. and continue your work on a `"master"` branch, as before.
