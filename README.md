@@ -68,5 +68,4 @@ If you're using [TeamCity S3 plugin](https://github.com/guardian/teamcity-s3-plu
 
 ## Releasing a new plugin's version:
 
-Push any commit to "release" branch, this will trigger a release build at [circleci.com/gh/cloudnative/teamcity-webhooks](https://circleci.com/gh/cloudnative/teamcity-webhooks) and upload the new version to [dl.bintray.com/cloudnative/teamcity/teamcity-webhooks/](https://dl.bintray.com/cloudnative/teamcity/teamcity-webhooks/).
-The release is made from the "master" branch, the actual content pushed to "release" doesn't really matter.
+Push any commit to "release" branch, this will trigger a release build at [circleci.com/gh/cloudnative/teamcity-webhooks](https://circleci.com/gh/cloudnative/teamcity-webhooks) and upload the new version to [dl.bintray.com/cloudnative/teamcity/teamcity-webhooks/](https://dl.bintray.com/cloudnative/teamcity/teamcity-webhooks/). The release is made from the "master" branch, the actual content pushed to "release" doesn't really matter. DO NOT push to "master" while the release build is running, let it finish first.
