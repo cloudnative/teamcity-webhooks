@@ -30,7 +30,7 @@ The payload submitted includes the following information:
 * Job's name and URL.
 * Build's number, full URL, and status.
 * SCM URL, branch and commit (tested only with Git repositories).
-* Artifacts generated. 
+* Artifacts produced. 
 
 ## Installation:
 
