@@ -1,5 +1,5 @@
 <%@ include file="/include.jsp"%>
-<div><h3 class="title">Webhook URL</h3></div>
+<div><h3 class="title">Webhook URLs</h3></div>
 
 <table class="settings" style="width: auto; border: 0">
 <%-- Model filled by WebhooksProjectTab --%>
