@@ -50,7 +50,7 @@ Also, TeamCity needs to have its URL configured in "Administration" => "Server A
 
 ![Project WebHooks](https://raw.githubusercontent.com/cloudnative/teamcity-webhooks/master/images/server-url.png)
 
-Once WebHooks are set for a project, all its build configurations will POST a JSON payload when the build finishes.
+Once WebHooks are set for a project, all its build configurations will POST a JSON payload when builds finish.
 
 ## Java and TeamCity versions:
 
