@@ -52,9 +52,19 @@ Also, TeamCity needs to have its URL configured in "Administration" => "Server A
 
 Once WebHooks are set for a project, all its build configurations will POST a JSON payload when the build finishes.
 
+## Java and TeamCity versions:
+
+The plugin requires Java 6 to work.
+The plugin was tested with TeamCity 8.0 and 9.0.3. Therefore, it shouldn't break with other TeamCity 8.x/9.x versions.  
+
 ## S3 support:
 
 If you're using [TeamCity S3 plugin](https://github.com/guardian/teamcity-s3-plugin) the plugin will also include artifacts S3 URLs. Note that your S3 bucket needs to allow anonymous downloads for artifacts to be downloaded.
+
+
+## Building the plugin locally:
+
+    mvn clean package
 
 ## Releasing a new plugin's version:
 
